@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+        <div class="row" style="color:#fff">
+            <div class="example-wrapper">
+                {{ render_chart(chart, {'id': 'my-chart'})}}
+            </div>  
+        </div>
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+        <script type="module" src="{{ asset('js/import.js') }}"></script>
+    {% endblock %}
+
+{% endblock %}

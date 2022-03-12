@@ -19,7 +19,9 @@ class ImportDataType extends AbstractType
             // ...
             ->add('xlsx', FileType::class, [
                 'label' => 'data (.xlsx)',
-
+                'attr' => [
+                    'class' => 'form-control'
+                ],
                 // unmapped means that this field is not associated to any entity property
                 'mapped' => false,
 
@@ -40,9 +42,9 @@ class ImportDataType extends AbstractType
                 ],
             ])
             // ...
-            ->add('extract', SubmitType::class, [
+            ->add('Extraire', SubmitType::class, [
                 'attr' => [
-                    'class' => 'btn-btn-success'
+                    'class' => 'btn btn-success d-block mx-auto mt-3'
     ]])
         ;
     }
