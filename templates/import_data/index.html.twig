@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ImportDataController!{% endblock %}
+
+{% block body %}
+
+    <h1>Import data</h1>
+
+    {{ form_start(form) }}
+
+    {{ form_row(form.xlsx) }}
+    {{ form_end(form) }}
+{#    creer graphique html#}
+{# install chartjs #}
+{#    utilise dans twig (script)#}
+{#    assurer l'affichage du chart (test)#}
+{#    rendre le graphique dynamique#}
+{#    {{ data |json_encode(constant('JSON_PRETTY_PRINT')) }}#}
+    <div class="example-wrapper">
+        {{ render_chart(chart, {'id': 'my-chart'})}}
+    </div>
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+        <script type="module" src="{{ asset('js/import.js') }}"></script>
+    {% endblock %}
+
+{% endblock %}

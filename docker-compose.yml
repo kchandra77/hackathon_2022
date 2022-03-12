@@ -6,13 +6,19 @@ x-cache-from:
       - php:8.0-fpm
 
 services:
-
   db:
-    image: mysql
-    command: --default-authentication-plugin=mysql_native_password
+    image: postgres:13-alpine
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: example
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data:rw
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
 
   adminer:
     image: adminer

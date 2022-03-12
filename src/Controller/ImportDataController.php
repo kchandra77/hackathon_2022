@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\ImportData;
+use App\Form\ImportDataType;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
+
+class ImportDataController extends AbstractController
+{
+    #[Route('/import_data', name: 'app_import_data')]
+    public function index(Request $request, SluggerInterface $slugger, ChartBuilderInterface $chartBuilder): Response
+    {
+        $importData = new ImportData();
+        $form = $this->createForm(ImportDataType::class, $importData);
+        $form->handleRequest($request);
+        $data = [];
+        $chart = $chartBuilder->createChart(Chart::TYPE_LINE);
+//&& $form->isValid()
+        if ($form->isSubmitted()) {
+            /** @var UploadedFile $excelFile */
+            $excelFile = $form->get('xlsx')->getData();
+
+
+           // dd(file_get_contents($excelFile)); die;
+            // this condition is needed because the 'brochure' field is not required
+            // so the PDF file must be processed only when a file is uploaded
+            if ($excelFile) {
+                $originalFilename = pathinfo($excelFile->getClientOriginalName(), PATHINFO_FILENAME);
+                // this is needed to safely include the file name as part of the URL
+                $safeFilename = $slugger->slug($originalFilename);
+                $extension = $excelFile->guessExtension();
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$extension;
+
+
+                // Move the file to the directory where brochures are stored
+
+                    $excelFile->move(
+                        $this->getParameter('wired_beauty_directory'),
+                        $newFilename
+                    );
+                    /**  Identify the type of $inputFileName  **/
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($this->getParameter('wired_beauty_directory').'/wired_beauty_datas.xlsx');
+//                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($newFilename->getPathname());
+
+                    /**  Advise the Reader that we only want to load cell data  **/
+                        $sheet = $spreadsheet->getActiveSheet();
+
+                        $data = $sheet->toArray();
+
+                // instead of its contents
+                $importData->setDataFilename($newFilename);
+//                    $entityManager = $this->getDoctrine()->getManager();
+//                    $entityManager->persist($importData);
+//                    $entityManager->flush();
+
+               //dd($data);
+                $label = [];
+                if($data){
+                    foreach($data[0] as $data) {
+                        $label[] = $data;
+                    }
+
+                    $a = 0;
+                    $table = [];
+
+                    foreach ($sheet->getRowIterator() as $row) {
+                        $iterator = $row->getCellIterator();
+                        $b=0;
+                        foreach ($iterator as $key => $cell) {
+                            if($a != 0 & $b < 6) {
+                                $table[$a][$b] = $cell->getValue();
+                            }
+                            $b++;
+                        }
+                        $a++;
+                    }
+                    //dd($table);
+
+                    $chart->setData([
+                        'labels' => [$label[0], $label[1], $label[2], $label[3], $label[4],$label[5]],
+                        'datasets' => [
+                            [
+                                'label' => 'Score skinbiosese',
+                                'backgroundColor' => 'rgb(255, 99, 132)',
+                                'borderColor' => 'rgb(255, 99, 132)',
+                                'data' => $table,
+
+                            ],
+                        ],
+                    ]);
+                    $chart->setOptions([]);
+                }
+
+            }
+
+        }
+        return $this->renderForm('import_data/index.html.twig', [
+            'data' => $data,
+            'form' => $form,
+            'chart' => $chart
+        ]);
+    }
+
+}
+
+
